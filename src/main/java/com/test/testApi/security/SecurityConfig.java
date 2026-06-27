@@ -76,8 +76,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // 允許來自前端 Vite 的請求
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
+        // 允許來自前端 Vite 的請求，以及部署在 Render 上的正式前端網址
+        configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:5173",
+                "https://testapi-vue.onrender.com"
+        ));
         // 允許所有 HTTP 方法 (GET, POST, PUT, DELETE, OPTIONS)
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         // 允許所有 Header
