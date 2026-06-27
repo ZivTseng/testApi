@@ -70,6 +70,9 @@ public class LiffController {
     @PostMapping("/reservations")
     public BookingResultRes book(@Valid @RequestBody LiffBookReq req, Authentication authentication) {
         Parent parent = currentParent(authentication);
+        if (parent.isPendingReview()) {
+            throw new RuntimeException("您的報名資料還在等館方確認，請稍候再試或聯絡館方");
+        }
         assertOwnChild(parent, req.getStudentId());
         return reservationService.book(req.getStudentId(), req.getSessionId(), false, "PARENT:" + parent.getId());
     }

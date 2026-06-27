@@ -39,7 +39,8 @@ public class LiffAuthController {
         LineIdTokenVerifier.VerifiedProfile profile = lineIdTokenVerifier.verify(req.getIdToken());
 
         return parentRepository.findByLineUserId(profile.userId())
-                .map(parent -> LiffAuthRes.linked(jwtUtils.generateParentJwtToken(parent.getId()), parent.getName()))
+                .map(parent -> LiffAuthRes.linked(
+                        jwtUtils.generateParentJwtToken(parent.getId()), parent.getName(), parent.isPendingReview()))
                 .orElseGet(LiffAuthRes::notLinked);
     }
 
@@ -62,7 +63,7 @@ public class LiffAuthController {
         log.setDetail("家長 " + parent.getName() + " 透過 LIFF 電話綁定完成 LINE 帳號綁定");
         auditLogRepository.save(log);
 
-        return LiffAuthRes.linked(jwtUtils.generateParentJwtToken(parent.getId()), parent.getName());
+        return LiffAuthRes.linked(jwtUtils.generateParentJwtToken(parent.getId()), parent.getName(), parent.isPendingReview());
     }
 
     // 全新客戶（從沒在館方登記過）自助報名：建立家長＋學員資料，標記為待館方確認（尚未收款/聯絡），不需要館方先建好資料
@@ -96,6 +97,6 @@ public class LiffAuthController {
         log.setDetail("新家長 " + parent.getName() + " 透過 LIFF 自助報名，孩子：" + student.getName() + "，待館方確認");
         auditLogRepository.save(log);
 
-        return LiffAuthRes.linked(jwtUtils.generateParentJwtToken(parent.getId()), parent.getName());
+        return LiffAuthRes.linked(jwtUtils.generateParentJwtToken(parent.getId()), parent.getName(), true);
     }
 }

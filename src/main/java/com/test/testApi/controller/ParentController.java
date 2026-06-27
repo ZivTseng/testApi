@@ -59,8 +59,18 @@ public class ParentController {
     }
 
     @DeleteMapping("/{id}")
+    @Transactional
     public ResponseEntity<MessageRes> delete(@PathVariable Long id) {
-        parentRepository.delete(findOrThrow(id));
+        Parent parent = findOrThrow(id);
+
+        // Student 是多對多關係的擁有端，刪除家長前要先把這個家長從所有孩子的 parents 集合中移除，
+        // 否則 parent_student join table 還留著參照這個家長的列，刪除 Parent 會被外鍵限制擋住
+        for (Student student : studentRepository.findByParents_Id(id)) {
+            student.getParents().remove(parent);
+            studentRepository.save(student);
+        }
+
+        parentRepository.delete(parent);
         return ResponseEntity.ok(new MessageRes("家長刪除成功"));
     }
 
