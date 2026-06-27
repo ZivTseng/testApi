@@ -81,7 +81,9 @@ public class ParentController {
     private void applyReq(Parent parent, ParentReq req) {
         parent.setName(req.getName());
         parent.setPhone(req.getPhone());
-        parent.setLineUserId(req.getLineUserId());
+        // 表單沒填寫時前端會送空字串，這裡正規化成 null，否則「尚未綁定 LINE」的判斷（lineUserId IS NULL）會失效
+        parent.setLineUserId(
+                req.getLineUserId() == null || req.getLineUserId().isBlank() ? null : req.getLineUserId());
     }
 
     /** Student 是這個多對多關係的擁有端，所以從家長端調整孩子清單時，要逐一更新 Student.parents 集合 */
