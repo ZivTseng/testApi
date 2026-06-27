@@ -1,7 +1,7 @@
 package com.test.testApi.security;
 
-import com.test.testApi.entity.User;
-import com.test.testApi.repository.UserRepository;
+import com.test.testApi.entity.AdminUser;
+import com.test.testApi.repository.AdminUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -14,19 +14,17 @@ import java.util.ArrayList;
 public class CustomUserDetailsService implements UserDetailsService {
 
     @Autowired
-    private UserRepository userRepository;
+    private AdminUserRepository adminUserRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        // 從我們寫的 UserRepository 中尋找使用者
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("找不到該 Email: " + email));
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        AdminUser adminUser = adminUserRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("找不到該帳號: " + username));
 
-        // 將我們的 User Entity 轉換成 Spring Security 認識的 UserDetails 物件
-        // 這裡權限先給空的 ArrayList，因為題目說權限設計可簡化
+        // 權限先給空的 ArrayList，後續可依 role 補上對應的 GrantedAuthority
         return new org.springframework.security.core.userdetails.User(
-                user.getEmail(),
-                user.getPassword(),
+                adminUser.getUsername(),
+                adminUser.getPassword(),
                 new ArrayList<>()
         );
     }

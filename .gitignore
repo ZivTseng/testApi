@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### 本機機敏設定，不可推上 git ###
+application-local.properties
+src/main/resources/application-local.properties

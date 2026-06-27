@@ -4,8 +4,8 @@ import com.test.testApi.dto.req.LoginReq;
 import com.test.testApi.dto.req.RegisterReq;
 import com.test.testApi.dto.res.LoginRes;
 import com.test.testApi.dto.res.MessageRes;
-import com.test.testApi.entity.User;
-import com.test.testApi.repository.UserRepository;
+import com.test.testApi.entity.AdminUser;
+import com.test.testApi.repository.AdminUserRepository;
 import com.test.testApi.security.JwtUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,23 +33,23 @@ public class AuthController {
     private JwtUtils jwtUtils;
 
     @Autowired
-    private UserRepository userRepository;
+    private AdminUserRepository adminUserRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginReq loginReq) {
-        log.info("收到登入請求，嘗試登入的 Email: {}", loginReq.getEmail());
+        log.info("收到登入請求，嘗試登入的帳號: {}", loginReq.getUsername());
 
         try {
-            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginReq.getEmail(), loginReq.getPassword()));
+            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginReq.getUsername(), loginReq.getPassword()));
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             String jwt = jwtUtils.generateJwtToken(userDetails.getUsername());
 
-            log.info("登入成功！發放 Token 給 Email: {}", userDetails.getUsername());
+            log.info("登入成功！發放 Token 給帳號: {}", userDetails.getUsername());
 
             return ResponseEntity.ok(new LoginRes(jwt, userDetails.getUsername()));
 
@@ -62,22 +62,20 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody RegisterReq req) {
 
-        // 使用 req.getEmail() 取值
-        if (userRepository.existsByEmail(req.getEmail())) {
+        if (adminUserRepository.existsByUsername(req.getUsername())) {
             return ResponseEntity
                     .badRequest()
-                    // 回傳 MessageRes
-                    .body(new MessageRes("錯誤：該 Email 已被註冊！"));
+                    .body(new MessageRes("錯誤：該帳號已被註冊！"));
         }
 
-        User user = new User();
-        user.setUserName(req.getUsername());
-        user.setEmail(req.getEmail());
-        user.setPassword(passwordEncoder.encode(req.getPassword()));
+        AdminUser adminUser = new AdminUser();
+        adminUser.setUsername(req.getUsername());
+        adminUser.setPassword(passwordEncoder.encode(req.getPassword()));
+        adminUser.setName(req.getName());
+        adminUser.setRole(req.getRole());
 
-        userRepository.save(user);
+        adminUserRepository.save(adminUser);
 
-        // 回傳 MessageRes
         return ResponseEntity.ok(new MessageRes("註冊成功！"));
     }
 }

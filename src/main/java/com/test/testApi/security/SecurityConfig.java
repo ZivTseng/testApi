@@ -28,6 +28,9 @@ public class SecurityConfig {
     @Autowired
     private AuthTokenFilter authTokenFilter;
 
+    @Autowired
+    private LiffAuthTokenFilter liffAuthTokenFilter;
+
     // 定義密碼加密器 (使用 BCrypt)
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -52,15 +55,20 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth ->
                         auth.requestMatchers(
                                         "/api/auth/**",
+                                        "/api/line/**",        // LINE 平台呼叫 Webhook 時不會帶 JWT，需放行
+                                        "/api/liff/auth",      // 家長首次用 LIFF 登入時還沒有家長 Token
+                                        "/api/liff/link",      // 家長用電話綁定既有資料時還沒有家長 Token
                                         "/v3/api-docs/**",     // 放行 Swagger 資料
                                         "/swagger-ui/**",      // 放行 Swagger UI 介面
                                         "/swagger-ui.html"
                                 ).permitAll()
+                                .requestMatchers("/api/liff/**").hasRole("PARENT")
                                 .anyRequest().authenticated()
                 );
 
-        // 4. 把我們的警衛 (AuthTokenFilter) 安插在 Spring Security 預設的帳密檢查器之前
+        // 4. 把我們的警衛安插在 Spring Security 預設的帳密檢查器之前：後台管理員 Token 跟家長 LIFF Token 各自獨立驗證
         http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(liffAuthTokenFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

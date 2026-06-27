@@ -41,6 +41,31 @@ public class JwtUtils {
                 .parseClaimsJws(token).getBody().getSubject();
     }
 
+    // 家長端 (LIFF) 專用：用家長 ID 簽發一張帶有 type=PARENT 標記的 Token，跟後台管理員 Token 區分開來
+    public String generateParentJwtToken(Long parentId) {
+        return Jwts.builder()
+                .setSubject(String.valueOf(parentId))
+                .claim("type", "PARENT")
+                .setIssuedAt(new Date())
+                .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
+                .signWith(key(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public boolean isParentToken(String token) {
+        Object type = Jwts.parserBuilder().setSigningKey(key())
+                .build()
+                .parseClaimsJws(token).getBody().get("type");
+        return "PARENT".equals(type);
+    }
+
+    public Long getParentIdFromJwtToken(String token) {
+        String subject = Jwts.parserBuilder().setSigningKey(key())
+                .build()
+                .parseClaimsJws(token).getBody().getSubject();
+        return Long.valueOf(subject);
+    }
+
     // 3. 驗票機 (驗證)：檢查這張 Token 是不是偽造的、有沒有過期
     public boolean validateJwtToken(String authToken) {
         try {

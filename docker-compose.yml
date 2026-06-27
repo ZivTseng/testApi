@@ -1,22 +1,19 @@
 version: '3.8'
 
 services:
-  mysql:
-    image: mysql:8.0.35
-    container_name: blog_admin_mysql
+  postgres:
+    image: postgres:16
+    container_name: blog_admin_postgres
     ports:
-      - "3306:3306"
+      - "5432:5432"
     environment:
-      # 設定 root 密碼（對應我們 application.properties 裡的設定）
-      MYSQL_ROOT_PASSWORD: 123456
+      POSTGRES_PASSWORD: 123456
       # 啟動時自動建立我們需要的空資料庫
-      MYSQL_DATABASE: blog_admin_db
-      # 設定時區
+      POSTGRES_DB: blog_admin_db
       TZ: Asia/Taipei
     volumes:
       # 讓資料持久化，避免容器重啟後資料不見
-      - mysql_data:/var/lib/mysql
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+      - postgres_data:/var/lib/postgresql/data
 
 volumes:
-  mysql_data:
+  postgres_data:
