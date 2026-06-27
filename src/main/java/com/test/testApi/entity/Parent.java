@@ -47,6 +47,10 @@ public class Parent {
     @Column(name = "branch_id", nullable = false, columnDefinition = "BIGINT DEFAULT 1")
     private Long branchId = 1L;
 
+    // 家長透過 LIFF 自助報名建立的資料，館方還沒電話聯絡/收款確認過；館方手動建立的資料一律視為已確認
+    @Column(name = "pending_review", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private boolean pendingReview = false;
+
     @ManyToMany(mappedBy = "parents")
     private Set<Student> students = new HashSet<>();
 

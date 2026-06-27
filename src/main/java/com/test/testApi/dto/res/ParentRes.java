@@ -14,6 +14,7 @@ public class ParentRes {
     private String phone;
     private String lineUserId;
     private List<Long> studentIds;
+    private boolean pendingReview;
 
     public static ParentRes from(Parent parent) {
         return new ParentRes(
@@ -21,7 +22,8 @@ public class ParentRes {
                 parent.getName(),
                 parent.getPhone(),
                 parent.getLineUserId(),
-                parent.getStudents().stream().map(s -> s.getId()).toList()
+                parent.getStudents().stream().map(s -> s.getId()).toList(),
+                parent.isPendingReview()
         );
     }
 }

@@ -78,6 +78,15 @@ public class ParentController {
         return new BindingCodeRes(code, expireAt);
     }
 
+    // 館方電話聯絡/收款確認完成後，標記這筆自助報名資料為已確認
+    @PostMapping("/{id}/confirm-review")
+    public ParentRes confirmReview(@PathVariable Long id) {
+        Parent parent = findOrThrow(id);
+        parent.setPendingReview(false);
+        parentRepository.save(parent);
+        return ParentRes.from(parent);
+    }
+
     private void applyReq(Parent parent, ParentReq req) {
         parent.setName(req.getName());
         parent.setPhone(req.getPhone());
@@ -109,7 +118,7 @@ public class ParentController {
     // 因此直接用剛同步完成的目標清單組回應，確保 API 回傳值與實際寫入結果一致
     private ParentRes toResWithStudentIds(Parent parent, List<Long> studentIds) {
         return new ParentRes(parent.getId(), parent.getName(), parent.getPhone(), parent.getLineUserId(),
-                studentIds == null ? List.of() : studentIds);
+                studentIds == null ? List.of() : studentIds, parent.isPendingReview());
     }
 
     private Parent findOrThrow(Long id) {

@@ -58,6 +58,7 @@ public class SecurityConfig {
                                         "/api/line/**",        // LINE 平台呼叫 Webhook 時不會帶 JWT，需放行
                                         "/api/liff/auth",      // 家長首次用 LIFF 登入時還沒有家長 Token
                                         "/api/liff/link",      // 家長用電話綁定既有資料時還沒有家長 Token
+                                        "/api/liff/register",  // 全新客戶自助報名時還沒有家長 Token
                                         "/v3/api-docs/**",     // 放行 Swagger 資料
                                         "/swagger-ui/**",      // 放行 Swagger UI 介面
                                         "/swagger-ui.html"
