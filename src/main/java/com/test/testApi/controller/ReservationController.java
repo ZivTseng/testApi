@@ -9,9 +9,11 @@ import com.test.testApi.repository.ReservationRepository;
 import com.test.testApi.service.ReservationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -49,6 +51,15 @@ public class ReservationController {
         return reservationRepository.findBySession_IdAndStatusIn(sessionId,
                         List.of(ReservationStatus.CONFIRMED, ReservationStatus.ATTENDED, ReservationStatus.ABSENT))
                 .stream().map(ReservationRes::from).toList();
+    }
+
+    // 每日預約表：列出某一天所有課程場次的預約（不含已取消），方便館方一次看當天全館的預約狀況
+    @GetMapping("/date/{date}")
+    public List<ReservationRes> byDate(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        return reservationRepository.findBySession_SessionDateBetween(date, date).stream()
+                .filter(r -> r.getStatus() != ReservationStatus.CANCELLED)
+                .map(ReservationRes::from)
+                .toList();
     }
 
     @PostMapping("/{id}/attendance")
