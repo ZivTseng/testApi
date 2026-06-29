@@ -24,7 +24,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/course-sessions")
@@ -113,6 +116,54 @@ public class CourseSessionController {
 
         courseSessionRepository.delete(session);
         return ResponseEntity.ok(new MessageRes("課程場次刪除成功"));
+    }
+
+    // 清理重複場次：同課程、同日期、同時段、同名額的場次只保留一筆（保留預約數最多的那筆），其餘強制刪除
+    // （之前批量建立重複場次的儲存按鈕沒有防止重複送出，連點過幾次就會把整批場次重複建立好幾倍）
+    @PostMapping("/cleanup-duplicates")
+    @Transactional
+    public MessageRes cleanupDuplicates(Authentication authentication) {
+        String operator = authentication != null ? authentication.getName() : "SYSTEM";
+
+        record Key(Long courseId, java.time.LocalDate sessionDate, java.time.LocalTime startTime,
+                   java.time.LocalTime endTime, Integer capacity) {
+        }
+
+        List<CourseSession> all = courseSessionRepository.findAll();
+        Map<Key, List<CourseSession>> groups = all.stream().collect(Collectors.groupingBy(s ->
+                new Key(s.getCourse().getId(), s.getSessionDate(), s.getStartTime(), s.getEndTime(), s.getCapacity())));
+
+        int deletedCount = 0;
+        for (List<CourseSession> group : groups.values()) {
+            if (group.size() <= 1) continue;
+
+            group.sort(Comparator.comparingLong((CourseSession s) ->
+                            reservationRepository.countBySession_IdAndStatusIn(s.getId(), OCCUPYING_STATUSES))
+                    .reversed()
+                    .thenComparing(CourseSession::getId));
+
+            for (CourseSession dup : group.subList(1, group.size())) {
+                List<Reservation> reservations = reservationRepository.findBySession_Id(dup.getId());
+                List<Waitlist> waitlists = waitlistRepository.findBySession_IdOrderByQueueNoAsc(dup.getId());
+                for (Reservation reservation : reservations) {
+                    reservationService.forceCancelForSessionDeletion(reservation, operator);
+                }
+                for (Waitlist waitlist : waitlists) {
+                    waitlistRepository.delete(waitlist);
+                }
+                courseSessionRepository.delete(dup);
+                deletedCount++;
+            }
+        }
+
+        AuditLog log = new AuditLog();
+        log.setOperator(operator);
+        log.setAction("CLEANUP_DUPLICATE_SESSIONS");
+        log.setTargetType("CourseSession");
+        log.setDetail("清理重複場次，共刪除 " + deletedCount + " 筆");
+        auditLogRepository.save(log);
+
+        return new MessageRes("清理完成，共刪除 " + deletedCount + " 筆重複場次");
     }
 
     private void applyReq(CourseSession session, CourseSessionReq req) {
