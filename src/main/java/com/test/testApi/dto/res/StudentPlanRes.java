@@ -14,6 +14,7 @@ public class StudentPlanRes {
     private String studentName;
     private Long planId;
     private String planName;
+    private Integer totalSessions;
     private Integer remainingSessions;
     private LocalDate purchaseDate;
     private LocalDate expireDate;
@@ -25,6 +26,7 @@ public class StudentPlanRes {
                 sp.getStudent().getName(),
                 sp.getPlan().getId(),
                 sp.getPlan().getName(),
+                sp.getPlan().getTotalSessions(),
                 sp.getRemainingSessions(),
                 sp.getPurchaseDate(),
                 sp.getExpireDate()

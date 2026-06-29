@@ -29,6 +29,12 @@ public class StudentPlanController {
         return studentPlanService.open(req.getStudentId(), req.getPlanId(), req.getPurchaseDate(), operatorOf(authentication));
     }
 
+    // 供學員列表頁一次帶出所有人的儲值狀態，避免逐筆呼叫 /student/{id}
+    @GetMapping
+    public List<StudentPlanRes> list() {
+        return studentPlanRepository.findAll().stream().map(StudentPlanRes::from).toList();
+    }
+
     @GetMapping("/student/{studentId}")
     public List<StudentPlanRes> byStudent(@PathVariable Long studentId) {
         return studentPlanRepository.findByStudent_Id(studentId).stream().map(StudentPlanRes::from).toList();
