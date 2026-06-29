@@ -9,6 +9,7 @@ import com.test.testApi.repository.ParentRepository;
 import com.test.testApi.repository.StudentRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,7 +27,8 @@ public class StudentController {
 
     @GetMapping
     public List<StudentRes> list() {
-        return studentRepository.findAll().stream().map(StudentRes::from).toList();
+        // findAll() 沒指定排序時，資料庫不保證回傳順序，編輯資料後列表順序可能跟著洗牌，固定依學號排序
+        return studentRepository.findAll(Sort.by("studentNo")).stream().map(StudentRes::from).toList();
     }
 
     @GetMapping("/{id}")

@@ -18,6 +18,7 @@ import com.test.testApi.repository.WaitlistRepository;
 import com.test.testApi.service.ReservationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,7 +43,8 @@ public class CourseSessionController {
 
     @GetMapping
     public List<CourseSessionRes> list() {
-        return courseSessionRepository.findAll().stream().map(this::toRes).toList();
+        return courseSessionRepository.findAll(Sort.by("sessionDate").ascending().and(Sort.by("startTime").ascending()))
+                .stream().map(this::toRes).toList();
     }
 
     @GetMapping("/{id}")

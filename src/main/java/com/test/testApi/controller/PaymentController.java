@@ -13,6 +13,7 @@ import com.test.testApi.repository.PlanRepository;
 import com.test.testApi.repository.StudentRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,7 +31,8 @@ public class PaymentController {
 
     @GetMapping
     public List<PaymentRes> list() {
-        return paymentRepository.findAll().stream().map(PaymentRes::from).toList();
+        return paymentRepository.findAll(Sort.by("paymentDate").descending().and(Sort.by("id").descending()))
+                .stream().map(PaymentRes::from).toList();
     }
 
     @GetMapping("/student/{studentId}")

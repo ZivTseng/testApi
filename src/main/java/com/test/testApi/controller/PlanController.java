@@ -7,6 +7,7 @@ import com.test.testApi.entity.Plan;
 import com.test.testApi.repository.PlanRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +22,7 @@ public class PlanController {
 
     @GetMapping
     public List<PlanRes> list() {
-        return planRepository.findAll().stream().map(PlanRes::from).toList();
+        return planRepository.findAll(Sort.by("name")).stream().map(PlanRes::from).toList();
     }
 
     @GetMapping("/{id}")

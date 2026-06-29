@@ -7,6 +7,7 @@ import com.test.testApi.entity.Course;
 import com.test.testApi.repository.CourseRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +22,7 @@ public class CourseController {
 
     @GetMapping
     public List<CourseRes> list() {
-        return courseRepository.findAll().stream().map(CourseRes::from).toList();
+        return courseRepository.findAll(Sort.by("name")).stream().map(CourseRes::from).toList();
     }
 
     @GetMapping("/{id}")

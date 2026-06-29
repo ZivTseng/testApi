@@ -10,6 +10,7 @@ import com.test.testApi.repository.ParentRepository;
 import com.test.testApi.repository.StudentRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +31,7 @@ public class ParentController {
 
     @GetMapping
     public List<ParentRes> list() {
-        return parentRepository.findAll().stream().map(ParentRes::from).toList();
+        return parentRepository.findAll(Sort.by("name")).stream().map(ParentRes::from).toList();
     }
 
     @GetMapping("/{id}")
