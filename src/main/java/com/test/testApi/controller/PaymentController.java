@@ -11,10 +11,12 @@ import com.test.testApi.repository.AuditLogRepository;
 import com.test.testApi.repository.PaymentRepository;
 import com.test.testApi.repository.PlanRepository;
 import com.test.testApi.repository.StudentRepository;
+import com.test.testApi.service.StudentPlanService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,6 +30,7 @@ public class PaymentController {
     private final StudentRepository studentRepository;
     private final PlanRepository planRepository;
     private final AuditLogRepository auditLogRepository;
+    private final StudentPlanService studentPlanService;
 
     @GetMapping
     public List<PaymentRes> list() {
@@ -94,7 +97,9 @@ public class PaymentController {
         return PaymentRes.from(payment);
     }
 
+    // 確認收款後自動幫學員開通/加值對應的方案，館方不需要再切到另一個頁面手動建立儲值帳户
     @PostMapping("/{id}/confirm")
+    @Transactional
     public PaymentRes confirm(@PathVariable Long id, Authentication authentication) {
         Payment payment = findOrThrow(id);
         if (payment.getStatus() == PaymentStatus.CONFIRMED) {
@@ -103,8 +108,11 @@ public class PaymentController {
         payment.setStatus(PaymentStatus.CONFIRMED);
         paymentRepository.save(payment);
 
-        saveAuditLog(operatorOf(authentication), "CONFIRM_PAYMENT", payment.getId(),
-                "確認收款，學員 " + payment.getStudent().getName() + "，金額 " + payment.getAmount());
+        String operator = operatorOf(authentication);
+        studentPlanService.open(payment.getStudent().getId(), payment.getPlan().getId(), payment.getPaymentDate(), operator);
+
+        saveAuditLog(operator, "CONFIRM_PAYMENT", payment.getId(),
+                "確認收款，學員 " + payment.getStudent().getName() + "，金額 " + payment.getAmount() + "，已自動開通對應方案");
 
         return PaymentRes.from(payment);
     }
